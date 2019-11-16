@@ -4,7 +4,8 @@ import socket
 
 localIP     = "172.17.3.16"
 
-localPort   = 20001
+localPort   = 8000
+#localPort   = 20001
 
 bufferSize  = 1024
 

@@ -1,0 +1,61 @@
+host:
+	name: r2
+	ssh: e1906841@pc3.instageni.cenic.net:26612
+	IP: 10.10.2.1
+	has 4 link:
+		link 1: r2 <--> s
+			Allow Interswitch Mapping
+			interface to r2:
+				name: interface-2
+				bandwidth: 1000kbps
+				IP: 10.10.2.1
+				Netmask: 255.255.255.0
+				MAC: 02e24d580dea
+			interface to s:
+				name: interface-3
+				bandwidth: 1000kbps
+				IP: 10.10.2.2
+				Netmask: 255.255.255.0
+				MAC: 02957920a2fc
+		link 4: r2 <--> d
+			Allow Interswitch Mapping
+			interface to r2:
+				name: interface-8
+				bandwidth: 1000kbps
+				IP: 10.10.5.1
+				Netmask: 255.255.255.0
+				MAC: 02e7a362216a
+			interface to d:
+				name: interface-9
+				bandwidth: 1000kbps
+				IP: 10.10.5.2
+				Netmask: 255.255.255.0
+				MAC: 0277dc4945d8
+		link 7: r2 <--> r1
+			Allow Interswitch Mapping
+			interface to r2:
+				name: interface-15
+				bandwidth: 100kbps
+				IP: 10.10.8.2
+				Netmask: 255.255.255.0
+				MAC: 028e760db03c
+			interface to r1:
+				name: interface-14
+				bandwidth: 100kbps
+				IP: 10.10.8.1
+				Netmask: 255.255.255.0
+				MAC: 02af79dca114
+		link 5: r2 <--> r3
+			Allow Interswitch Mapping
+			interface to r2:
+				name: interface-10
+				bandwidth: 100kbps
+				IP: 10.10.6.1
+				Netmask: 255.255.255.0
+				MAC: 02b0b72e7c99
+			interface to r3:
+				name: interface-11
+				bandwidth: 100kbps
+				IP: 10.10.6.2
+				Netmask: 255.255.255.0
+				MAC: 0246eed40cbf
