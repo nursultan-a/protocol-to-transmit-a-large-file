@@ -1,0 +1,25 @@
+Host r1
+     Port 26611
+     HostName pc3.instageni.cenic.net
+     User e1906841
+     IdentityFile /home/bs01/e1906841/Desktop/tp/id_geni_ssh_rsa
+Host r2
+     Port 26612
+     HostName pc3.instageni.cenic.net
+     User e1906841
+     IdentityFile /home/bs01/e1906841/Desktop/tp/id_geni_ssh_rsa
+Host r3
+     Port 26613
+     HostName pc3.instageni.cenic.net
+     User e1906841
+     IdentityFile /home/bs01/e1906841/Desktop/tp/id_geni_ssh_rsa
+Host d
+     Port 26610
+     HostName pc3.instageni.cenic.net
+     User e1906841
+     IdentityFile /home/bs01/e1906841/Desktop/tp/id_geni_ssh_rsa
+Host s
+     Port 26614
+     HostName pc3.instageni.cenic.net
+     User e1906841
+     IdentityFile /home/bs01/e1906841/Desktop/tp/id_geni_ssh_rsa
