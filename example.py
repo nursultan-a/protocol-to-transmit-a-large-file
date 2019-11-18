@@ -33,7 +33,7 @@ def Connect2Server(address, msg_id):
 
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
 
-    msg = address +" : "+str(repr(msgFromServer[0])[2:-1])
+    msg = "["+address+"] : "+str(repr(msgFromServer[0])[2:-1])
 
     print(msg)
 
