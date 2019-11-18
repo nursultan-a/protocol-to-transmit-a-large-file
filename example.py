@@ -26,7 +26,7 @@ def Connect2Server(address):
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     serverAddressPort = (address, 5050)
 
-    msg = "START_R1*"+str(get_time())+"*NA"
+    msg = "START_R2*"+str(get_time())+"*NA"
     bytesToSend = str.encode(msg)
 
 
