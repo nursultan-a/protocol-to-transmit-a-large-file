@@ -6,7 +6,7 @@ import time
 
 ServerAddress = ("", 5050)
 
-ClientAdress = {
+ClientAddress = {
         "s"  :"10.10.2.2",
         "r1" :"10.10.8.1",
         "r3" :"10.10.6.2",
@@ -22,11 +22,11 @@ bufferSize = 1024
 def get_time():
       return int(round(time.time() * 1000))
 
-def Connect2Server(address):
+def Connect2Server(address, msg_id):
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     serverAddressPort = (address, 5050)
 
-    msg = "START_R2*"+str(get_time())+"*NA"
+    msg = "START_R2*"+str(get_time())+"*NA*"+str(msg_id)
     bytesToSend = str.encode(msg)
 
 
@@ -34,7 +34,7 @@ def Connect2Server(address):
 
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
 
-    msg = address +" : "+str(repr(msgFromServer[0])[2:-1])
+    msg = "["+address +"] : "+str(repr(msgFromServer[0])[2:-1])
 
     print(msg)
 
@@ -51,13 +51,20 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
         global ThreadCount
         global ThreadList
 
-        # initiated from S => send discovery message to : R1, R2, R3, S, D
-        if(initiate == True and address == ClientAdress["s"]):
-            
+        # initiated from S =>initiate D and send discovery message to : R1, R2, R3, S, D
+        if(initiate == True and address == ClientAddress["s"]):
+
+            # initiate D
+            d_init_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+            msg = "initiate message from R2 :)"
+            d_init_socket.sendto(str.encode(msg+" start working D"), (ClientAddress["d"], 5050))
+
             initiate = False
-            for key in ClientAdress:
+
+            # send discovery message to near hosts
+            for key in ClientAddress:
                 for index in range(ThreadCount):
-                    ThreadInstance = threading.Thread(target=Connect2Server(ClientAdress[key]))
+                    ThreadInstance = threading.Thread(target=Connect2Server(ClientAddress[key], index))
                     ThreadList.append(ThreadInstance)
                     ThreadInstance.start()
                 #main thread to wait till all connection threads are complete
