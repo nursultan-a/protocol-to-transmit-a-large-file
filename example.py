@@ -14,6 +14,7 @@ ClientAddress = {
 initiate = True
 ThreadList = []
 ThreadCount = 10
+bufferSize = 1024
 
 # initiate hosts: R2, R3, D
 r1_init_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -28,19 +29,19 @@ r3_init_socket.sendto(str.encode(msg+" start working R3"), (ClientAddress["r3"],
 def get_time():
       return int(round(time.time() * 1000))
 
-def Connect2Server(adress):
+def Connect2Server(address, msg_id):
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    serverAdressPort = (address, 5050)
 
-    msg = "S*"+str(get_time)+"*"
+    serverAddressPort = (address, 5050)
+
+    msg = "START_S*"+str(get_time())+"*"+str(msg_id)
     bytesToSend = str.encode(msg)
 
 
-    UDPClientSocket.sendto(bytesToSend, serverAsddresPort)
+    UDPClientSocket.sendto(bytesToSend, serverAddressPort)
 
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
-    msgFromserver = str(repr(msgFromServer[0])[2:-1])
-    msg = "[" + adress +"] :" +msgFromServer
+    msg = "[" + address +"] :" +str(repr(msgFromServer[0])[2:-1])
 
     print(msg)
 
@@ -53,11 +54,25 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
 
         print("[" + address + "] : "+datagram)
 
-        #print("Thread Name: {}".format(threading.current_thread().name))
+        global initiate
+        global TreadCount
+        global ThreadList
 
-        ACK = "ACK_S*"+datagram
+        #self initiation => send discovery messages to : R3, R2, R1
+        if(initiate == True):
+            initiate = False
+            for key in ClientAddress:
+                for index in range(ThreadCount):
+                    ThreadInstance = threading.Thread(target=Connect2Server(ClientAddress[key], index))
+                    ThreadList.append(ThreadInstance)
+                    ThreadInstance.start()
 
-        self.wfile.write(ACK.encode())
+                for index in range(ThreadCount):
+                    ThreadList[index].join()
+        else:
+            ACK = "ACK_S*"+datagram
+
+            self.wfile.write(ACK.encode())
 
 
 UDPServerObject = socketserver.ThreadingUDPServer(ServerAddress,UDPRequestHandler)
