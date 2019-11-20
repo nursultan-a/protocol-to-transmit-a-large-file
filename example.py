@@ -7,14 +7,14 @@ import time
 ServerAddress = ("", 5050)
 
 ClientAdress = {
-        "r2" :"10.10.6.1",
+        "d"  :"10.10.7.1",
         "s"  :"10.10.3.1",
-        "d"  :"10.10.7.1"
+        "r2" :"10.10.6.1"
         }
 
 initiate = True
 ThreadList = []
-ThreadCount = 10
+ThreadCount = 1000
 bufferSize = 1024
 
 
@@ -31,10 +31,7 @@ def get_time():
       return int(round(time.time() * 1000))
 
 def Connect2Server(address, msg_id):
-    global terminate
-    if(terminate <= 0):
-        print("server is closing")
-        UDPServerObject.server_close()
+
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     serverAddressPort = (address, 5050)
 
@@ -58,25 +55,32 @@ def Connect2Server(address, msg_id):
     global total_time_r2
     global total_time_d
 
+    global terminate
+
     if len(msgFromServer.split("*")) >= 4:
         difference = end_time - start_time
-        print(str(end_time)+" - "+str(start_time)+"="+str(difference))
+        #print(str(end_time)+" - "+str(start_time)+"="+str(difference))
         terminate -= 1
+
+        print("CONDITION-----------------------------------------"+str(terminate))
         if(visited_host == "s"):
             total_time_s += difference
         elif(visited_host == "r2"):
             total_time_r2 += difference
         elif(visited_host == "d"):
             total_time_d += difference
-    print("CONDITION-----------------------------------------"+str(terminate))
+        if(terminate == 0):
+            print("terminating server from ACK side")
 
+            UDPServerObject.shutdown()
+            rtt_s = total_time_s/ThreadCount
+            rtt_r2 = total_time_r2/ThreadCount
+            rtt_d = total_time_d/ThreadCount
+            print ("rtt for s: "+str(rtt_s)+" rtt for r2: "+str(rtt_r2)+" rtt for d: "+str(rtt_d))
 
-
-def close_server(ThreadList):
-    for t in ThreadList:
-        if t.is_alive() == True:
-            return False
-    return True
+            f = open("link_costs.txt", "w+")
+            f.write(str(rtt_s)+", "+str(rtt_r2)+", "+str(rtt_d))
+            f.close()
 
 class UDPRequestHandler(socketserver.DatagramRequestHandler):
     #override
@@ -97,7 +101,6 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
         global UDPServerObject
         # initiated from R2 => send discovery message to : S, R2, D
         if(initiate == True and address == ClientAdress["s"]):
-            
             initiate = False
             for key in ClientAdress:
                 for index in range(ThreadCount):
@@ -113,7 +116,7 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
             #print("Thread Name: {}".format(threading.current_thread().name))
 
             terminate -= 1
-            #print("condition -----------------"+ str(terminate))
+            print("condition -----------------"+ str(terminate))
             ACK = "ACK_R3*"+datagram
             self.wfile.write(ACK.encode())
             if(terminate == 0):
@@ -124,6 +127,11 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
                 rtt_r2 = total_time_r2/ThreadCount
                 rtt_d = total_time_d/ThreadCount
                 print ("rtt for s: "+str(rtt_s)+" rtt for r2: "+str(rtt_r2)+" rtt for d: "+str(rtt_d))
+
+                f = open("link_costs.txt", "w+")
+                f.write(str(rtt_s)+", "+str(rtt_r2)+", "+str(rtt_d))
+                f.close()
+
 UDPServerObject = socketserver.ThreadingUDPServer(ServerAddress,UDPRequestHandler)
 
 UDPServerObject.serve_forever()
