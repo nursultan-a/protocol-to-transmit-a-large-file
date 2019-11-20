@@ -1,5 +1,3 @@
-# Python program to print all paths from a source to destination. 
-
 from collections import defaultdict 
 
 #This class represents a directed graph 
