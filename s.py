@@ -16,6 +16,8 @@ ThreadList = []
 ThreadCount = 1000
 bufferSize = 1024
 
+terminate = ThreadCount*6 - 1
+
 flag = (ThreadCount*3) 
 
 # initiate hosts: R2, R3, D
@@ -46,6 +48,14 @@ def Connect2Server(address, msg_id):
     msg = "[" + address +"] :" +str(repr(msgFromServer[0])[2:-1])
 
     print(msg)
+    global terminate
+    global UDPServerObject
+
+    terminate -= 1
+    print("condition--------------"+str(terminate))
+    if terminate == 0:
+        print("Terminating server! Bye")
+        UDPServerObject.shutdown()
 
 class UDPRequestHandler(socketserver.DatagramRequestHandler):
 
@@ -61,12 +71,20 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
         global initiate
         global TreadCount
         global ThreadList
+        global terminate
+        global UDPServerObject
 
         #self initiation => send discovery messages to : R3, R2, R1
         if flag > 0:
             ACK = "ACK_S*"+datagram
             self.wfile.write(ACK.encode())
             print("flag-------------------------"+str(flag))
+            terminate -= 1
+            print("condition-------------------------"+str(terminate))
+
+            if terminate == 0:
+                print("terminating server!")
+                UDPServerObject.shutdown()
         elif(initiate == True):
             ACK = "ACK_S*"+datagram
             self.wfile.write(ACK.encode())
