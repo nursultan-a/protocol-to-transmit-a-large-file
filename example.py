@@ -7,14 +7,14 @@ import time
 ServerAddress = ("", 5050)
 
 ClientAdress = {
-        "r1"  :"10.10.4.1",
+        "r3"  :"10.10.7.2",
         "r2"  :"10.10.5.1",
-        "r3"  :"10.10.7.2"
+        "r1"  :"10.10.4.1"
         }
 
 initiate = True
 ThreadList = []
-ThreadCount = 10
+ThreadCount = 1000
 bufferSize = 1024
 
 
