@@ -1,45 +1,91 @@
+import socketserver
+import threading
 import socket
-import sys
+import time
 
 
-# get ip adress of connected hosts
-try:
-    r2_ip = socket.gethostbyname('r2')
-    print("r2 ip: %s" %(r2_ip))
-except socket.gaierror:
-    print("there was an error on resolving the r2")
-    sys.exit()
+ServerAddress = ("", 5050)
+
+ClientAdress = {
+        "r3"  :"10.10.7.2",
+        "r2"  :"10.10.5.1",
+        "r1"  :"10.10.4.1"
+        }
+
+initiate = True
+ThreadList = []
+ThreadCount = 1000
+bufferSize = 1024
+
+terminate = ThreadCount*6
+
+def get_time():
+      return int(round(time.time() * 1000))
+
+def Connect2Server(address, msg_id):
+    UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    serverAddressPort = (address, 5050)
+
+    msg = "START_D*"+str(get_time())+"*NA*"+str(msg_id)
+    bytesToSend = str.encode(msg)
 
 
-try:
-    r1_ip = socket.gethostbyname('r1')
-    print("r1 ip: %s" %(r1_ip))
-except socket.gaierror:
-    print("there was an error on resolving the r1")
-    sys.exit()
+    UDPClientSocket.sendto(bytesToSend, serverAddressPort)
 
-try:
-    r3_ip = socket.gethostbyname('r3')
-    print("r3 ip: %s" %(r3_ip))
-except socket.gaierror:
-    print("there was an error on resolving the r3")
-    sys.exit()
+    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
+
+    msg = "["+address+"] : "+str(repr(msgFromServer[0])[2:-1])
+
+    print(msg)
+
+    global terminate
+    global UDPServerObject
+    if terminate == 0:
+        print("Terminateing server! Bye")
+        UDPServerObject.shutdown()
+    terminate -= 1
+
+    print("Condition ---------------"+ str(terminate))
+
+class UDPRequestHandler(socketserver.DatagramRequestHandler):
+    #override
+    def handle(self):
+        datagram = str(repr(self.rfile.readline().strip())[2:-1])
+        address = "{}".format(self.client_address[0])
+
+        print("[" + address + "] : "+datagram)
+        global initiate
+        global ThreadCount
+        global ThreadList
+
+        global terminate
+
+        # initiated from R2 => send discovery message to : S, R2, D
+        if(initiate == True and address == ClientAdress["r2"]):
+            
+            initiate = False
+            for key in ClientAdress:
+                for index in range(ThreadCount):
+                    ThreadInstance = threading.Thread(target=Connect2Server(ClientAdress[key], index))
+                    ThreadList.append(ThreadInstance)
+                    ThreadInstance.start()
+                #main thread to wait till all connection threads are complete
+                for index in range(ThreadCount):
+                    ThreadList[index].join()
+        
+        # respond to requested UDP messages
+        else:
+            #print("Thread Name: {}".format(threading.current_thread().name))
+            terminate -= 1
+            ACK = "ACK_D*"+datagram
+            self.wfile.write(ACK.encode())
+
+            print("condition------------------------"+str(terminate))
+            if terminate == 0:
+                print("Shutting down server! Bye")
+                UDPServerObject.shutdown()
 
 
-port = 12345
-# create client and server socet for r1
-try:
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM);
-    print("server_socket successfully created")
+UDPServerObject = socketserver.ThreadingUDPServer(ServerAddress,UDPRequestHandler)
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM);
-    print("client_socket successfully created")
-except socket.error as err:
-    print("socket creation failed with error %s" %(err))
-
-
-destination = (r2_ip, port)
-client_socket.sendto("hello from d".encode(),destination)
-
-responded_msg = client_socket.recvfrom(1024)
-print(responded_msg[0].decode())
+UDPServerObject.serve_forever()
