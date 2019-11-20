@@ -8,13 +8,15 @@ ServerAddress = ("", 5050)
 
 ClientAddress = {
         "r1" :"10.10.1.2",
-        "r2" :"10.10.2.1",
         "r3" :"10.10.3.2",
+        "r2" :"10.10.2.1"
         }
 initiate = True
 ThreadList = []
-ThreadCount = 10
+ThreadCount = 1000
 bufferSize = 1024
+
+flag = (ThreadCount*3) 
 
 # initiate hosts: R2, R3, D
 r1_init_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -49,6 +51,8 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
 
     #override
     def handle(self):
+        global flag
+        flag -= 1
         datagram = str(repr(self.rfile.readline().strip())[2:-1])
         address = "{}".format(self.client_address[0])
 
@@ -59,7 +63,13 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
         global ThreadList
 
         #self initiation => send discovery messages to : R3, R2, R1
-        if(initiate == True):
+        if flag > 0:
+            ACK = "ACK_S*"+datagram
+            self.wfile.write(ACK.encode())
+            print("flag-------------------------"+str(flag))
+        elif(initiate == True):
+            ACK = "ACK_S*"+datagram
+            self.wfile.write(ACK.encode())
             initiate = False
             for key in ClientAddress:
                 for index in range(ThreadCount):
@@ -69,11 +79,6 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
 
                 for index in range(ThreadCount):
                     ThreadList[index].join()
-        else:
-            ACK = "ACK_S*"+datagram
-
-            self.wfile.write(ACK.encode())
-
 
 UDPServerObject = socketserver.ThreadingUDPServer(ServerAddress,UDPRequestHandler)
 
