@@ -4,7 +4,7 @@ import time
 msgFromClient       = ["Hello Destination Node","What is your IP?"]
 serverAddressPort   = ("10.10.3.2", 20001)
 bufferSize          = 1024
-experiment_number = 1
+experiment_number = 10
 total_time = 0
 rtt = 0
 
