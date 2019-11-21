@@ -52,7 +52,7 @@ def Connect2Server(address, msg_id):
     global UDPServerObject
 
     terminate -= 1
-    print("condition--------------"+str(terminate))
+    #print("condition--------------"+str(terminate))
     if terminate == 0:
         print("Terminating server! Bye")
         UDPServerObject.shutdown()
@@ -78,9 +78,9 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
         if flag > 0:
             ACK = "ACK_S*"+datagram
             self.wfile.write(ACK.encode())
-            print("flag-------------------------"+str(flag))
+            #print("flag-------------------------"+str(flag))
             terminate -= 1
-            print("condition-------------------------"+str(terminate))
+            #print("condition-------------------------"+str(terminate))
 
             if terminate == 0:
                 print("terminating server!")
