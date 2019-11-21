@@ -1,51 +1,33 @@
-import socketserver
-import threading
 import socket
-import time
 
+ 
 
-ServerAddress = ("", 5050)
+msgFromClient       = "Hello UDP Server"
 
-ClientAddress = {"r3" :"10.10.3.2"}
-ThreadList = []
-ThreadCount = 10
-bufferSize = 1024
+bytesToSend         = str.encode(msgFromClient)
 
-terminate = ThreadCount*6 - 1
+serverAddressPort   = ("127.0.0.1", 20001)
 
-flag = (ThreadCount*3) 
+bufferSize          = 1024
 
-def get_time():
-      return int(round(time.time() * 1000))
+ 
 
-def Connect2Server(address, msg_id):
-    UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+# Create a UDP socket at client side
 
-    serverAddressPort = (address, 5050)
+UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
-    msg = "FROM_S*"+str(get_time())+"INTERLINK_R3*TO_D*NURSULTAN"
-    bytesToSend = str.encode(msg)
+ 
 
+# Send to server using created UDP socket
 
-    UDPClientSocket.sendto(bytesToSend, serverAddressPort)
+UDPClientSocket.sendto(bytesToSend, serverAddressPort)
 
-    msgFromServer = UDPClientSocket.recvfrom(bufferSize)
-    msg = "[" + address +"] :" +str(repr(msgFromServer[0])[2:-1])
+ 
 
-    print(msg)
-    global terminate
-    global UDPServerObject
+msgFromServer = UDPClientSocket.recvfrom(bufferSize)
 
-    terminate -= 1
-    #print("condition--------------"+str(terminate))
-    if terminate == 0:
-        print("Terminating server! Bye")
-        UDPServerObject.shutdown()
+ 
 
-for index in range(ThreadCount):
-    ThreadInstance = threading.Thread(target=Connect2Server(ClientAddress[0], index))
-    ThreadList.append(ThreadInstance)
-    ThreadInstance.start()
+msg = "Message from Server {}".format(msgFromServer[0])
 
-for index in range(ThreadCount):
-    ThreadList[index].join()
+print(msg)
