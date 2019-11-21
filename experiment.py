@@ -8,13 +8,12 @@ ServerAddress = ("", 5050)
 
 ClientAdress = {
         "d"  :"10.10.7.1",
-        "s"  :"10.10.3.1",
-        "r2" :"10.10.6.1"
+        "s"  :"10.10.3.1"
         }
 
 initiate = True
 ThreadList = []
-ThreadCount = 1000
+ThreadCount = 10
 bufferSize = 1024
 
 
@@ -35,7 +34,7 @@ def Connect2Server(address, msg_id):
     UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
     serverAddressPort = (address, 5050)
 
-    msg = "START_R3*"+str(get_time())+"*NA*"+str(msg_id)
+    msg = "GOT message from source sending it to destination"+str(get_time())+"*NA*"
     bytesToSend = str.encode(msg)
 
 
@@ -100,16 +99,15 @@ class UDPRequestHandler(socketserver.DatagramRequestHandler):
 
         global UDPServerObject
         # initiated from R2 => send discovery message to : S, R2, D
-        if(initiate == True and address == ClientAdress["s"]):
+        if(address == ClientAdress["s"]):
             initiate = False
-            for key in ClientAdress:
-                for index in range(ThreadCount):
-                    ThreadInstance = threading.Thread(target=Connect2Server(ClientAdress[key], index))
-                    ThreadList.append(ThreadInstance)
-                    ThreadInstance.start()
-                #main thread to wait till all connection threads are complete
-                for index in range(ThreadCount):
-                    ThreadList[index].join()
+            for index in range(ThreadCount):
+                ThreadInstance = threading.Thread(target=Connect2Server(ClientAdress[key], index))
+                ThreadList.append(ThreadInstance)
+                ThreadInstance.start()
+            #main thread to wait till all connection threads are complete
+            for index in range(ThreadCount):
+                ThreadList[index].join()
                         
         # respond to requested UDP messages
         else:
